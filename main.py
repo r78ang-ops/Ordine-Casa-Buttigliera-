@@ -15,6 +15,7 @@ URL_SHEET = "INSERISCI_QUI_IL_LINK_DEL_TUO_GOOGLE_SHEET"
 
 # Connessione a Google Sheets
 conn = st.connection("gsheets", type=GSheetsConnection)
+df = conn.read()
 
 def carica_dati():
     # Leggiamo i dati dal foglio Google
@@ -75,4 +76,5 @@ def render_row(row, idx):
 
 # Visualizzazione semplice per test
 for i, r in df_raw.iterrows():
+
     render_row(r, i)
