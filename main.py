@@ -106,7 +106,7 @@ elif PAGINA == "Volantini & Offerte 💰":
     # SEZIONE CONAD
     st.subheader("📕 Volantini CONAD")
     st.write("Sfoglia le offerte per il punto vendita di Via Falcone.")
-    st.link_button("👉 APRI VOLANTINO CONAD", "https://www.promoqui.it/avigliana/conad/volantino", use_container_width=True)
+    st.link_button("👉 APRI VOLANTINO CONAD", "https://www.promoqui.it/volantino/conad", use_container_width=True)
     
     st.markdown("---") # Separatore visivo
     
@@ -128,3 +128,4 @@ elif PAGINA == "Trova Supermercati 📍":
     st.title("📍 Supermercati Vicini")
     st.write("Visualizza i supermercati intorno a te su Google Maps.")
     st.link_button("🗺️ APRI GOOGLE MAPS", "https://www.google.com/maps/search/supermercati+vicino+a+me/", use_container_width=True)
+
