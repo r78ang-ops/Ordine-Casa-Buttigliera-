@@ -39,6 +39,7 @@ if PAGINA == "Lista Spesa":
     df_raw = carica_dati()
     oggi = date.today()
 
+    # --- SIDEBAR: AGGIUNGI & CANCELLA ---
     st.sidebar.header("➕ Nuovo Ordine")
     with st.sidebar.form("form_nuovo", clear_on_submit=True):
         nuovo_nome = st.text_input("Cosa serve?")
@@ -49,6 +50,19 @@ if PAGINA == "Lista Spesa":
                 conn.update(data=pd.concat([df_raw, nuova_riga], ignore_index=True))
                 st.rerun()
 
+    st.sidebar.markdown("---")
+    st.sidebar.header("⚙️ Gestione")
+    # IL PULSANTE CHE MANCAVA:
+    if st.sidebar.button("🗑️ Svuota Completati"):
+        if not df_raw[df_raw['Consegnato'] == True].empty:
+            df_pulito = df_raw[df_raw['Consegnato'] == False]
+            conn.update(data=df_pulito)
+            st.sidebar.warning("Ordini completati rimossi!")
+            st.rerun()
+        else:
+            st.sidebar.info("Nulla da rimuovere.")
+
+    # --- RICERCA E LISTA ---
     search = st.text_input("🔍 Cerca prodotto...", "").lower()
     df_visual = df_raw[df_raw['Prodotto'].str.lower().str.contains(search)] if search else df_raw
 
@@ -100,8 +114,7 @@ elif PAGINA == "Volantini & Offerte 💰":
     
     st.markdown("---")
     st.subheader("📕 Volantino CONAD (Sottocosto)")
-    # LINK AGGIORNATO COME RICHIESTO
-    st.link_button("👉 APRI VOLANTINO CONAD", "https://www.promoqui.it/volantino/conad-superstore", use_container_width=True)
+    st.link_button("👉 APRI VOLANTINO CONAD", "https://www.promoqui.it/volantino/conad-superstore/sottocosto-4876861", use_container_width=True)
     
     st.markdown("---")
     st.subheader("📗 Volantino COOP")
@@ -112,11 +125,6 @@ elif PAGINA == "Volantini & Offerte 💰":
 # ==========================================
 elif PAGINA == "Trova Supermercati 📍":
     st.title("📍 Supermercati Vicini a Te")
-    st.write("Il pulsante sotto aprirà Google Maps cercando i supermercati intorno alla tua posizione attuale.")
-    
-    link_maps_dinamico = "https://www.google.com/maps/search/supermercati/@?api=1"
-    
-    st.link_button("🔍 CERCA SUPERMERCATI VICINO A ME", link_maps_dinamico, use_container_width=True)
-    
+    st.link_button("🔍 CERCA SUPERMERCATI VICINO A ME", "https://www.google.com/maps/search/supermercati/@?api=1", use_container_width=True)
     st.divider()
-    st.info("💡 **Nota:** Google Maps mostrerà i risultati basandosi sul tuo GPS.")
+    st.info("💡 La ricerca si basa sulla tua posizione GPS attuale.")
