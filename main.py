@@ -126,7 +126,7 @@ elif PAGINA == "Carta CONAD":
     st.title("🛒 Carta Fedeltà CONAD")
     st.info("Inquadra il codice alla cassa")
     # Carica l'immagine dal tuo repository GitHub (assicurati che il nome file sia corretto)
-    st.image("conad.jpg", caption="Codice CONAD", use_container_width=True)
+    st.image("CONAD.jpg", caption="Codice CONAD", use_container_width=True)
 
 # ==========================================
 # PAGINA 3: CARTA COOP
@@ -135,4 +135,5 @@ elif PAGINA == "Carta COOP":
     st.title("🛍️ Carta Fedeltà COOP")
     st.info("Inquadra il codice alla cassa")
     # Carica l'immagine dal tuo repository GitHub (assicurati che il nome file sia corretto)
-    st.image("coop.jpg", caption="Codice COOP", use_container_width=True)
+    st.image("COOP.jpg", caption="Codice COOP", use_container_width=True)
+
