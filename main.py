@@ -99,24 +99,24 @@ elif PAGINA == "Volantini & Offerte 💰":
     st.link_button("👉 APRI VOLANTINO CRAI", "https://www.promoqui.it/volantino/crai", use_container_width=True)
     
     st.markdown("---")
-    st.subheader("📕 Volantino CONAD")
-    st.link_button("👉 APRI VOLANTINO CONAD", "https://www.promoqui.it/avigliana/conad/volantino", use_container_width=True)
+    st.subheader("📕 Volantino CONAD (Sottocosto)")
+    # LINK AGGIORNATO COME RICHIESTO
+    st.link_button("👉 APRI VOLANTINO CONAD", "https://www.promoqui.it/volantino/conad-superstore", use_container_width=True)
     
     st.markdown("---")
     st.subheader("📗 Volantino COOP")
     st.link_button("👉 APRI VOLANTINO COOP", "https://www.promoqui.it/avigliana/coop/volantino", use_container_width=True)
 
 # ==========================================
-# PAGINA: TROVA SUPERMERCATI (DINAMICA)
+# PAGINA: TROVA SUPERMERCATI
 # ==========================================
 elif PAGINA == "Trova Supermercati 📍":
     st.title("📍 Supermercati Vicini a Te")
-    st.write("Il pulsante sotto aprirà Google Maps cercando automaticamente i supermercati nel raggio di 10km dalla tua posizione attuale.")
+    st.write("Il pulsante sotto aprirà Google Maps cercando i supermercati intorno alla tua posizione attuale.")
     
-    # Questo link istruisce Google Maps a cercare "supermercati" vicino alla posizione GPS dell'utente
     link_maps_dinamico = "https://www.google.com/maps/search/supermercati/@?api=1"
     
     st.link_button("🔍 CERCA SUPERMERCATI VICINO A ME", link_maps_dinamico, use_container_width=True)
     
     st.divider()
-    st.info("💡 **Nota:** Assicurati di avere il GPS attivo sul telefono quando si apre Google Maps per vedere i risultati più precisi.")
+    st.info("💡 **Nota:** Google Maps mostrerà i risultati basandosi sul tuo GPS.")
