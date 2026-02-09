@@ -7,7 +7,7 @@ import os
 # --- CONFIGURAZIONE PAGINA ---
 st.set_page_config(page_title="Ordini Casa Buttigliera", layout="wide", page_icon="🏠")
 
-# Ottieni la cartella del file per le immagini (conad.jpg e coop.jpg)
+# Percorso per le immagini delle carte
 current_dir = os.path.dirname(os.path.abspath(__file__))
 
 # --- NAVIGAZIONE LATERALE ---
@@ -73,59 +73,50 @@ if PAGINA == "Lista Spesa":
         for i, r in df_visual[df_visual['Consegnato'] == True].iterrows(): render_row(r, i)
 
 # ==========================================
-# PAGINA: CARTA CONAD
+# PAGINE CARTE FEDELTÀ
 # ==========================================
 elif PAGINA == "Carta CONAD":
     st.title("🛒 Carta Fedeltà CONAD")
     img = os.path.join(current_dir, "conad.jpg")
-    if os.path.exists(img): 
-        st.image(img, use_container_width=True)
-    else: 
-        st.error("Immagine conad.jpg non trovata su GitHub.")
+    if os.path.exists(img): st.image(img, use_container_width=True)
+    else: st.error("Immagine conad.jpg non trovata.")
 
-# ==========================================
-# PAGINA: CARTA COOP
-# ==========================================
 elif PAGINA == "Carta COOP":
     st.title("🛍️ Carta Fedeltà COOP")
     img = os.path.join(current_dir, "coop.jpg")
-    if os.path.exists(img): 
-        st.image(img, use_container_width=True)
-    else: 
-        st.error("Immagine coop.jpg non trovata su GitHub.")
+    if os.path.exists(img): st.image(img, use_container_width=True)
+    else: st.error("Immagine coop.jpg non trovata.")
 
 # ==========================================
-# PAGINA: VOLANTINI & OFFERTE (PromoQui)
+# PAGINA: VOLANTINI & OFFERTE
 # ==========================================
 elif PAGINA == "Volantini & Offerte 💰":
-    st.title("💰 Volantini Online - Avigliana")
-    st.info("Tocca i pulsanti per aprire i volantini aggiornati su PromoQui.")
+    st.title("💰 Volantini Online")
+    st.info("Tocca i pulsanti per aprire i volantini aggiornati.")
     
     st.markdown("---")
+    st.subheader("🥬 Volantino CRAI")
+    st.link_button("👉 APRI VOLANTINO CRAI", "https://www.promoqui.it/volantino/crai", use_container_width=True)
     
-    # SEZIONE CONAD
-    st.subheader("📕 Volantini CONAD")
-    st.write("Sfoglia le offerte per il punto vendita di Via Falcone.")
-    st.link_button("👉 APRI VOLANTINO CONAD", "https://www.promoqui.it/volantino/conad", use_container_width=True)
+    st.markdown("---")
+    st.subheader("📕 Volantino CONAD")
+    st.link_button("👉 APRI VOLANTINO CONAD", "https://www.promoqui.it/avigliana/conad/volantino", use_container_width=True)
     
-    st.markdown("---") # Separatore visivo
-    
-    # SEZIONE COOP
-    st.subheader("📗 Volantini COOP")
-    st.write("Sfoglia le offerte per il centro Le Torri.")
+    st.markdown("---")
+    st.subheader("📗 Volantino COOP")
     st.link_button("👉 APRI VOLANTINO COOP", "https://www.promoqui.it/avigliana/coop/volantino", use_container_width=True)
 
-    st.markdown("---")
-    
-    # TUTTE LE ALTRE OFFERTE
-    st.subheader("🔍 Altre Offerte")
-    st.link_button("🌐 TUTTI I VOLANTINI DI AVIGLIANA", "https://www.promoqui.it/avigliana/offerte", use_container_width=True)
-
 # ==========================================
-# PAGINA: TROVA SUPERMERCATI
+# PAGINA: TROVA SUPERMERCATI (DINAMICA)
 # ==========================================
 elif PAGINA == "Trova Supermercati 📍":
-    st.title("📍 Supermercati Vicini")
-    st.write("Visualizza i supermercati intorno a te su Google Maps.")
-    st.link_button("🗺️ APRI GOOGLE MAPS", "https://www.google.com/maps/search/supermercati+vicino+a+me/", use_container_width=True)
-
+    st.title("📍 Supermercati Vicini a Te")
+    st.write("Il pulsante sotto aprirà Google Maps cercando automaticamente i supermercati nel raggio di 10km dalla tua posizione attuale.")
+    
+    # Questo link istruisce Google Maps a cercare "supermercati" vicino alla posizione GPS dell'utente
+    link_maps_dinamico = "https://www.google.com/maps/search/supermercati/@?api=1"
+    
+    st.link_button("🔍 CERCA SUPERMERCATI VICINO A ME", link_maps_dinamico, use_container_width=True)
+    
+    st.divider()
+    st.info("💡 **Nota:** Assicurati di avere il GPS attivo sul telefono quando si apre Google Maps per vedere i risultati più precisi.")
