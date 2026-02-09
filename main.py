@@ -2,138 +2,129 @@ import streamlit as st
 from streamlit_gsheets import GSheetsConnection
 import pandas as pd
 from datetime import date
+import os
 
 # --- CONFIGURAZIONE PAGINA ---
 st.set_page_config(page_title="Ordini Casa Buttigliera", layout="wide", page_icon="🏠")
 
+# Ottieni la cartella del file per le immagini (conad.jpg e coop.jpg)
+current_dir = os.path.dirname(os.path.abspath(__file__))
+
 # --- NAVIGAZIONE LATERALE ---
-PAGINA = st.sidebar.selectbox("Vai a:", ["Lista Spesa", "Carta CONAD", "Carta COOP"])
+PAGINA = st.sidebar.selectbox("Vai a:", [
+    "Lista Spesa", 
+    "Carta CONAD", 
+    "Carta COOP", 
+    "Volantini & Offerte 💰",
+    "Trova Supermercati 📍"
+])
 
 # --- CONNESSIONE GOOGLE SHEETS ---
-# Viene definita qui fuori così è accessibile se serve in futuro
 conn = st.connection("gsheets", type=GSheetsConnection)
 
-# --- FUNZIONE CARICAMENTO DATI ---
 def carica_dati():
     df = conn.read(ttl=0)
-    # Pulizia nomi colonne da spazi extra
     df.columns = [str(c).strip() for c in df.columns]
     if df.empty:
         return pd.DataFrame(columns=['ID', 'Prodotto', 'Data', 'Consegnato'])
-    # Formattazione tipi dati
     df['Data'] = pd.to_datetime(df['Data']).dt.date
     df['Consegnato'] = df['Consegnato'].fillna(False).astype(bool)
     return df
 
 # ==========================================
-# PAGINA 1: LISTA SPESA
+# PAGINA: LISTA SPESA
 # ==========================================
 if PAGINA == "Lista Spesa":
-    st.title("🏠 Lista Spesa Casa Buttigliera")
-    st.markdown("---")
-
+    st.title("🏠 Lista Spesa Buttigliera")
     df_raw = carica_dati()
     oggi = date.today()
 
-    # --- SIDEBAR: AGGIUNGI & GESTISCI ---
     st.sidebar.header("➕ Nuovo Ordine")
     with st.sidebar.form("form_nuovo", clear_on_submit=True):
         nuovo_nome = st.text_input("Cosa serve?")
         nuova_data = st.date_input("Entro quando?", value=oggi)
-        if st.form_submit_button("Aggiungi alla Lista"):
+        if st.form_submit_button("Aggiungi"):
             if nuovo_nome:
-                nuova_riga = pd.DataFrame([{
-                    'ID': int(df_raw['ID'].max() + 1) if not df_raw.empty else 1,
-                    'Prodotto': nuovo_nome,
-                    'Data': nuova_data,
-                    'Consegnato': False
-                }])
-                df_updated = pd.concat([df_raw, nuova_riga], ignore_index=True)
-                conn.update(data=df_updated)
-                st.sidebar.success("✅ Aggiunto!")
+                nuova_riga = pd.DataFrame([{'ID': int(df_raw['ID'].max()+1) if not df_raw.empty else 1, 'Prodotto': nuovo_nome, 'Data': nuova_data, 'Consegnato': False}])
+                conn.update(data=pd.concat([df_raw, nuova_riga], ignore_index=True))
                 st.rerun()
 
-    st.sidebar.markdown("---")
-    st.sidebar.header("⚙️ Gestione Lista")
+    search = st.text_input("🔍 Cerca prodotto...", "").lower()
+    df_visual = df_raw[df_raw['Prodotto'].str.lower().str.contains(search)] if search else df_raw
 
-    # PULSANTE PER CANCELLARE COMPLETATI
-    if st.sidebar.button("🗑️ Svuota Ordini Completati"):
-        if not df_raw[df_raw['Consegnato'] == True].empty:
-            df_pulito = df_raw[df_raw['Consegnato'] == False]
-            conn.update(data=df_pulito)
-            st.sidebar.warning("Ordini completati rimossi!")
-            st.rerun()
-        else:
-            st.sidebar.info("Nulla da rimuovere.")
-
-    # --- BARRA DI RICERCA ---
-    search_query = st.text_input("🔍 Cerca prodotto...", "").lower()
-
-    # Filtro ricerca
-    if search_query:
-        df_visual = df_raw[df_raw['Prodotto'].str.lower().str.contains(search_query)]
-    else:
-        df_visual = df_raw
-
-    # --- FUNZIONE RENDERING RIGA ---
     def render_row(row, idx):
         c1, c2, c3 = st.columns([0.5, 4, 1.5])
         with c1:
-            check = st.checkbox("Fatto", value=row['Consegnato'], key=f"row_{idx}", label_visibility="collapsed")
+            check = st.checkbox("Fatto", value=row['Consegnato'], key=f"r_{idx}", label_visibility="collapsed")
             if check != row['Consegnato']:
                 df_raw.at[idx, 'Consegnato'] = check
                 conn.update(data=df_raw)
                 st.rerun()
-        with c2:
-            if row['Consegnato']: st.markdown(f"~~{row['Prodotto']}~~")
-            else: st.write(f"**{row['Prodotto']}**")
-        with c3:
-            st.caption(f"📅 {row['Data'].strftime('%d/%m/%Y')}")
+        with c2: st.markdown(f"~~{row['Prodotto']}~~" if row['Consegnato'] else f"**{row['Prodotto']}**")
+        with c3: st.caption(f"📅 {row['Data'].strftime('%d/%m')}")
 
-    # --- SUDDIVISIONE LISTE ---
     aperti = df_visual[df_visual['Consegnato'] == False]
-    chiusi = df_visual[df_visual['Consegnato'] == True]
-
-    scaduti = aperti[aperti['Data'] < oggi].sort_values('Data')
-    per_oggi = aperti[aperti['Data'] == oggi].sort_values('Prodotto')
-    futuri = aperti[aperti['Data'] > oggi].sort_values('Data')
-
-    # --- VISUALIZZAZIONE SEZIONI ---
-    if not scaduti.empty:
-        st.error(f"🚨 SCADUTI ({len(scaduti)})")
-        for i, r in scaduti.iterrows(): render_row(r, i)
-
-    if not per_oggi.empty:
-        st.warning(f"🔔 DA PRENDERE OGGI ({len(per_oggi)})")
-        for i, r in per_oggi.iterrows(): render_row(r, i)
-
-    if not futuri.empty:
-        st.success(f"🗓️ PROSSIMAMENTE ({len(futuri)})")
-        for i, r in futuri.iterrows(): render_row(r, i)
-
-    st.markdown("---")
-    with st.expander("✅ Vedi ordini completati"):
-        if not chiusi.empty:
-            for i, r in chiusi.sort_values('Data', ascending=False).iterrows():
-                render_row(r, i)
-        else:
-            st.write("Nessun ordine completato.")
+    for label, d in [("🚨 SCADUTI", aperti[aperti['Data'] < oggi]), ("🔔 OGGI", aperti[aperti['Data'] == oggi]), ("🗓️ PROSSIMAMENTE", aperti[aperti['Data'] > oggi])]:
+        if not d.empty:
+            st.subheader(label)
+            for i, r in d.iterrows(): render_row(r, i)
+    
+    with st.expander("✅ Completati"):
+        for i, r in df_visual[df_visual['Consegnato'] == True].iterrows(): render_row(r, i)
 
 # ==========================================
-# PAGINA 2: CARTA CONAD
+# PAGINA: CARTA CONAD
 # ==========================================
 elif PAGINA == "Carta CONAD":
     st.title("🛒 Carta Fedeltà CONAD")
-    st.info("Inquadra il codice alla cassa")
-    # Carica l'immagine dal tuo repository GitHub (assicurati che il nome file sia corretto)
-    st.image("CONAD.jpg", caption="Codice CONAD", use_container_width=True)
+    img = os.path.join(current_dir, "conad.jpg")
+    if os.path.exists(img): 
+        st.image(img, use_container_width=True)
+    else: 
+        st.error("Immagine conad.jpg non trovata su GitHub.")
 
 # ==========================================
-# PAGINA 3: CARTA COOP
+# PAGINA: CARTA COOP
 # ==========================================
 elif PAGINA == "Carta COOP":
     st.title("🛍️ Carta Fedeltà COOP")
-    st.info("Inquadra il codice alla cassa")
-    # Carica l'immagine dal tuo repository GitHub (assicurati che il nome file sia corretto)
-    st.image("COOP.jpg", caption="Codice COOP", use_container_width=True)
+    img = os.path.join(current_dir, "coop.jpg")
+    if os.path.exists(img): 
+        st.image(img, use_container_width=True)
+    else: 
+        st.error("Immagine coop.jpg non trovata su GitHub.")
 
+# ==========================================
+# PAGINA: VOLANTINI & OFFERTE (PromoQui)
+# ==========================================
+elif PAGINA == "Volantini & Offerte 💰":
+    st.title("💰 Volantini Online - Avigliana")
+    st.info("Tocca i pulsanti per aprire i volantini aggiornati su PromoQui.")
+    
+    st.markdown("---")
+    
+    # SEZIONE CONAD
+    st.subheader("📕 Volantini CONAD")
+    st.write("Sfoglia le offerte per il punto vendita di Via Falcone.")
+    st.link_button("👉 APRI VOLANTINO CONAD", "https://www.promoqui.it/avigliana/conad/volantino", use_container_width=True)
+    
+    st.markdown("---") # Separatore visivo
+    
+    # SEZIONE COOP
+    st.subheader("📗 Volantini COOP")
+    st.write("Sfoglia le offerte per il centro Le Torri.")
+    st.link_button("👉 APRI VOLANTINO COOP", "https://www.promoqui.it/avigliana/coop/volantino", use_container_width=True)
+
+    st.markdown("---")
+    
+    # TUTTE LE ALTRE OFFERTE
+    st.subheader("🔍 Altre Offerte")
+    st.link_button("🌐 TUTTI I VOLANTINI DI AVIGLIANA", "https://www.promoqui.it/avigliana/offerte", use_container_width=True)
+
+# ==========================================
+# PAGINA: TROVA SUPERMERCATI
+# ==========================================
+elif PAGINA == "Trova Supermercati 📍":
+    st.title("📍 Supermercati Vicini")
+    st.write("Visualizza i supermercati intorno a te su Google Maps.")
+    st.link_button("🗺️ APRI GOOGLE MAPS", "https://www.google.com/maps/search/supermercati+vicino+a+me/", use_container_width=True)
